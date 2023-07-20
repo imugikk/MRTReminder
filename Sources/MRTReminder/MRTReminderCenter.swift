@@ -38,13 +38,16 @@ public class MRTReminderCenter: NSObject {
     }
     
     public func setReminder(request: MRTReminderRequest) {
+        print("Checking Notification Permission")
         notificationCenter.getNotificationSettings() { settings in
             if settings.authorizationStatus == .authorized {
+                print("Notification Permission Authorized!!!")
                 self.activateReminder(request: request)
             }
         }
     }
     private func activateReminder(request: MRTReminderRequest) {
+        
         let notificationContent = UNMutableNotificationContent()
         notificationContent.title = "You've Arrived!"
         notificationContent.body = "Get off at \(request.destinationName) station now."
@@ -56,11 +59,14 @@ public class MRTReminderCenter: NSObject {
             content: notificationContent,
             trigger: trigger)
         
-        UNUserNotificationCenter.current().add(request) { error in
+        print("Adding Notification Request")
+        
+        notificationCenter.add(request) { error in
             if error != nil {
                 print("Error: \(String(describing: error))")
             }
             else {
+                print("Notification Added!!!")
                 UNUserNotificationCenter.current().delegate = self
             }
         }
@@ -69,11 +75,14 @@ public class MRTReminderCenter: NSObject {
 
 extension MRTReminderCenter: UNUserNotificationCenterDelegate {
     public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        print("Notification Finished")
         completionHandler()
     }
     
     public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        print("Notification Finished 1")
         if #available(iOS 14.0, *) {
+            print("Notification Finished 2")
             completionHandler(.banner)
         }
     }
