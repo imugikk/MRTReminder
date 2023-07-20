@@ -8,9 +8,9 @@
 import CoreLocation
 import UserNotifications
 
-public class MRTReminderCenter {
+public class MRTReminderCenter: NSObject {
     public static let shared = MRTReminderCenter()
-    private init() {}
+    private override init() { super.init() }
     
     let notificationCenter = UNUserNotificationCenter.current()
     
@@ -45,23 +45,39 @@ public class MRTReminderCenter {
         }
     }
     
-    private var reminderList = [MRTReminderRequest]()
-    
-    public func addReminderRequest(_ request: MRTReminderRequest) {
-        reminderList.append(request)
-    }
-    
-    public func activateReminder(ticketId: String) {
-        if let request = getReminderRequest(ticketId: ticketId) {
-            request.startReminder()
+    public func activateReminder(request: MRTReminderRequest) {
+        guard isNotificationAllowed() else { return }
+        
+        let notificationContent = UNMutableNotificationContent()
+        notificationContent.title = "You've Arrived!"
+        notificationContent.body = "Get off at \(request.destinationName) station now."
+        
+        let trigger = UNLocationNotificationTrigger(region: request.destinationLocation, repeats: false)
+        
+        let request = UNNotificationRequest(
+            identifier: UUID().uuidString,
+            content: notificationContent,
+            trigger: trigger)
+        
+        UNUserNotificationCenter.current().add(request) { error in
+            if error != nil {
+                print("Error: \(String(describing: error))")
+            }
+            else {
+                UNUserNotificationCenter.current().delegate = self
+            }
         }
     }
-    
-    public func removeReminder(request: MRTReminderRequest) {
-        reminderList.removeAll(where: { $0.ticketId == request.ticketId })
+}
+
+extension MRTReminderCenter: UNUserNotificationCenterDelegate {
+    public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        completionHandler()
     }
     
-    public func getReminderRequest(ticketId: String) -> MRTReminderRequest? {
-        return reminderList.first(where: { $0.ticketId == ticketId } )
+    public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        if #available(iOS 14.0, *) {
+            completionHandler(.banner)
+        }
     }
 }
