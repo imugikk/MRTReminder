@@ -19,14 +19,6 @@ public class MRTReminderCenter: NSObject {
       notificationCenter.requestAuthorization(options: options) { _, _ in }
     }
     
-    public func isNotificationAllowed() -> Bool {
-        var authorized = false
-        notificationCenter.getNotificationSettings() { settings in
-            authorized = settings.authorizationStatus == .authorized
-        }
-        return authorized
-    }
-    
     private lazy var locationManager = makeLocationManager()
     private func makeLocationManager() -> CLLocationManager {
         let manager = CLLocationManager()
@@ -45,9 +37,14 @@ public class MRTReminderCenter: NSObject {
         }
     }
     
-    public func activateReminder(request: MRTReminderRequest) {
-        guard isNotificationAllowed() else { return }
-        
+    public func setReminder(request: MRTReminderRequest) {
+        notificationCenter.getNotificationSettings() { settings in
+            if settings.authorizationStatus == .authorized {
+                self.activateReminder(request: request)
+            }
+        }
+    }
+    private func activateReminder(request: MRTReminderRequest) {
         let notificationContent = UNMutableNotificationContent()
         notificationContent.title = "You've Arrived!"
         notificationContent.body = "Get off at \(request.destinationName) station now."
