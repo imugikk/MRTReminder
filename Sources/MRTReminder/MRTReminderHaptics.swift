@@ -11,11 +11,9 @@ public class MRTReminderHaptics {
     
     public static let shared = MRTReminderHaptics()
     
-    private init() {}
-    
     private var hapticEngine: CHHapticEngine?
     
-    public func setup() {
+    private init() {
         do {
             hapticEngine = try CHHapticEngine()
             try hapticEngine?.start()

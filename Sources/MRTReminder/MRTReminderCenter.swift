@@ -15,7 +15,7 @@ public class MRTReminderCenter: NSObject {
     let notificationCenter = UNUserNotificationCenter.current()
     
     public func requestNotificationPermission() {
-      let options: UNAuthorizationOptions = [.alert]
+        let options: UNAuthorizationOptions = [.alert, .sound]
       notificationCenter.requestAuthorization(options: options) { _, _ in }
     }
     
@@ -49,6 +49,7 @@ public class MRTReminderCenter: NSObject {
         let notificationContent = UNMutableNotificationContent()
         notificationContent.title = "You've Arrived!"
         notificationContent.body = "Get off at \(request.destinationName) station now."
+        notificationContent.sound = .default
         
         let trigger = UNLocationNotificationTrigger(region: request.destinationLocation, repeats: false)
         
