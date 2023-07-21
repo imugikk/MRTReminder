@@ -52,20 +52,22 @@ public class MRTReminderCenter: NSObject {
         
         let trigger = UNLocationNotificationTrigger(region: request.destinationLocation, repeats: false)
         
-        let request = UNNotificationRequest(
+        let notifRequest = UNNotificationRequest(
             identifier: UUID().uuidString,
             content: notificationContent,
             trigger: trigger)
         
         print("Adding Notification Request")
         
-        notificationCenter.add(request) { error in
+        notificationCenter.add(notifRequest) { error in
             if error != nil {
                 print("Error: \(String(describing: error))")
             }
             else {
                 print("Notification Added!!!")
                 self.notificationCenter.delegate = self
+                self.locationManager.delegate = self
+                self.locationManager.startMonitoring(for: request.destinationLocation)
             }
         }
     }
@@ -80,5 +82,12 @@ extension MRTReminderCenter: UNUserNotificationCenterDelegate {
     public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         print("Notification Finished 2")
         completionHandler(.banner)
+    }
+}
+
+extension MRTReminderCenter: CLLocationManagerDelegate {
+    public func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
+        print("User entered the region")
+        MRTReminderHaptics.shared.playVibration(duration: 0.5, delay: 0.5, repetition: 3)
     }
 }
