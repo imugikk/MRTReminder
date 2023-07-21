@@ -89,5 +89,6 @@ extension MRTReminderCenter: CLLocationManagerDelegate {
     public func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
         print("User entered the region")
         MRTReminderHaptics.shared.playVibration(duration: 0.5, delay: 0.5, repetition: 3)
+        self.locationManager.stopMonitoring(for: region)
     }
 }
