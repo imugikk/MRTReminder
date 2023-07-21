@@ -90,7 +90,7 @@ extension MRTReminderCenter: UNUserNotificationCenterDelegate {
 extension MRTReminderCenter: CLLocationManagerDelegate {
     public func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
         print("User entered the region")
-        if UIApplication.shared.applicationState != .background {
+        if UIApplication.shared.applicationState == .active {
             MRTReminderHaptics.shared.playVibration(duration: 0.5, delay: 0.5, repetition: 3)
         }
         self.locationManager.stopMonitoring(for: region)
