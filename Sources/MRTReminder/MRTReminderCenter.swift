@@ -49,8 +49,7 @@ public class MRTReminderCenter: NSObject {
         
         let notificationContent = UNMutableNotificationContent()
         notificationContent.title = "You've Arrived!"
-        notificationContent.body = "Get off at \(request.destinationName) station now."
-        notificationContent.sound = .default
+        notificationContent.body = "Get off at \(request.destinationStation.name) station now."
         
         let trigger = UNLocationNotificationTrigger(region: request.destinationLocation, repeats: false)
         
