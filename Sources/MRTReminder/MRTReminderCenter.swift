@@ -27,13 +27,11 @@ public class MRTReminderCenter: NSObject {
     }
     
     public func requestLocationPermission() {
-        if #available(iOS 14.0, *) {
-            switch locationManager.authorizationStatus {
-            case .notDetermined, .denied, .restricted:
-                locationManager.requestWhenInUseAuthorization()
-            default:
-                break
-            }
+        switch locationManager.authorizationStatus {
+        case .notDetermined, .denied, .restricted:
+            locationManager.requestWhenInUseAuthorization()
+        default:
+            break
         }
     }
     
@@ -67,7 +65,7 @@ public class MRTReminderCenter: NSObject {
             }
             else {
                 print("Notification Added!!!")
-                UNUserNotificationCenter.current().delegate = self
+                self.notificationCenter.delegate = self
             }
         }
     }
@@ -75,15 +73,12 @@ public class MRTReminderCenter: NSObject {
 
 extension MRTReminderCenter: UNUserNotificationCenterDelegate {
     public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-        print("Notification Finished")
+        print("Notification Finished 1")
         completionHandler()
     }
     
     public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        print("Notification Finished 1")
-        if #available(iOS 14.0, *) {
-            print("Notification Finished 2")
-            completionHandler(.banner)
-        }
+        print("Notification Finished 2")
+        completionHandler(.banner)
     }
 }
