@@ -7,6 +7,7 @@
 
 import CoreLocation
 import UserNotifications
+import UIKit
 
 public class MRTReminderCenter: NSObject {
     public static let shared = MRTReminderCenter()
@@ -89,7 +90,9 @@ extension MRTReminderCenter: UNUserNotificationCenterDelegate {
 extension MRTReminderCenter: CLLocationManagerDelegate {
     public func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
         print("User entered the region")
-        MRTReminderHaptics.shared.playVibration(duration: 0.5, delay: 0.5, repetition: 3)
+        if UIApplication.shared.applicationState != .background {
+            MRTReminderHaptics.shared.playVibration(duration: 0.5, delay: 0.5, repetition: 3)
+        }
         self.locationManager.stopMonitoring(for: region)
     }
 }
