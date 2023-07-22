@@ -17,7 +17,7 @@ class MRTReminderStationList {
         var currStation = stations[0]
         stationList[currStation.name] = currStation
         for i in 1..<stations.count {
-            var nextStation = stations[i]
+            let nextStation = stations[i]
             nextStation.setLeftStation(currStation)
             currStation.setRightStation(nextStation)
             stationList[nextStation.name] = nextStation
