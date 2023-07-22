@@ -70,11 +70,11 @@ public class MRTReminderCenter: NSObject {
                 currStation = nextStation
             }
         }
-        print("Monitoring Started For \(locationManager.monitoredRegions.count) Regions")
+        print("Monitoring Started For \(regionIndex.count) Regions")
     }
     
     public func deactivateReminder() {
-        print("Monitoring Ended...")
+        print("Monitoring Ended For \(locationManager.monitoredRegions.count) Regions")
         
         regionIndex.removeAll()
         for region in locationManager.monitoredRegions {
