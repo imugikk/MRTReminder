@@ -92,7 +92,7 @@ extension MRTReminderCenter: UNUserNotificationCenterDelegate {
     
     public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         print("Notification Finished 2")
-        completionHandler(.banner)
+        completionHandler([.banner, .sound])
     }
 }
 
