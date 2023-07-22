@@ -8,12 +8,9 @@
 import CoreLocation
 
 public class MRTReminderStationList {
-    public static let shared = MRTReminderStationList()
-    private init() { }
+    private static var stationList = [String: MRTReminderStation]()
     
-    private var stationList = [String: MRTReminderStation]()
-    
-    public func register(stations: [MRTReminderStation]) {
+    public static func register(stations: [MRTReminderStation]) {
         var currStation = stations[0]
         stationList[currStation.name] = currStation
         for i in 1..<stations.count {
@@ -25,7 +22,7 @@ public class MRTReminderStationList {
         }
     }
     
-    public func getStation(withName name: String) -> MRTReminderStation? {
-        return stationList[name]
+    public static func getStation(withName name: String) -> MRTReminderStation {
+        return stationList[name]!
     }
 }

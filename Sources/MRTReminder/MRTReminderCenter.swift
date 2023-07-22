@@ -48,6 +48,7 @@ public class MRTReminderCenter: NSObject {
         
         currentRequest = request
         if let nextStation = request.getNextStation()?.region {
+            print("Monitoring Started...")
             locationManager.startMonitoring(for: nextStation)
         }
     }
