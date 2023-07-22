@@ -130,24 +130,24 @@ extension MRTReminderCenter: UNUserNotificationCenterDelegate {
 extension MRTReminderCenter: CLLocationManagerDelegate {
     public func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
         
-        guard let stationIndex = regionIndex[region] else { return }
-        guard currentRequest.currStationIndex != stationIndex else { return }
+//        guard let stationIndex = regionIndex[region] else { return }
+//        guard currentRequest.currStationIndex != stationIndex else { return }
         
-        print("User entered a station: \(stationIndex)")
-        self.currentRequest.updateCurrentStatus(currStationIndex: stationIndex)
-        self.delegate?.reminderProgressUpdated(stationsTraveled: currentRequest.currStationIndex,
-                                               stationsRemaining: currentRequest.stationsRemaining,
-                                               totalStations: currentRequest.lastStationIndex)
-        
-        if currentRequest.stationsRemaining >= 0 {
-            if currentRequest.stationsRemaining == 1 {
-                showNotification(title: "You almost arrive!",
-                                     body: "You have 1 station left. Get ready to get off!")
-            }
-            else if currentRequest.stationsRemaining == 0 {
-                showNotification(title: "You’ve arrived!",
-                                 body: "Get off at \(currentRequest.endStation.name) station now.")
-            }
-        }
+        print("User entered a station: \(regionIndex[region]!)")
+//        self.currentRequest.updateCurrentStatus(currStationIndex: stationIndex)
+//        self.delegate?.reminderProgressUpdated(stationsTraveled: currentRequest.currStationIndex,
+//                                               stationsRemaining: currentRequest.stationsRemaining,
+//                                               totalStations: currentRequest.lastStationIndex)
+//
+//        if currentRequest.stationsRemaining >= 0 {
+//            if currentRequest.stationsRemaining == 1 {
+//                showNotification(title: "You almost arrive!",
+//                                     body: "You have 1 station left. Get ready to get off!")
+//            }
+//            else if currentRequest.stationsRemaining == 0 {
+//                showNotification(title: "You’ve arrived!",
+//                                 body: "Get off at \(currentRequest.endStation.name) station now.")
+//            }
+//        }
     }
 }
