@@ -13,12 +13,8 @@ public class MRTReminderCenter: NSObject {
     public static let shared = MRTReminderCenter()
     private override init() { super.init() }
     
-    let notificationCenter = UNUserNotificationCenter.current()
-    
-    public func requestNotificationPermission() {
-        let options: UNAuthorizationOptions = [.alert, .sound]
-      notificationCenter.requestAuthorization(options: options) { _, _ in }
-    }
+    private var currentRequest: MRTReminderRequest!
+    public var delegate: MRTReminderProgressDelegate?
     
     private lazy var locationManager = makeLocationManager()
     private func makeLocationManager() -> CLLocationManager {
@@ -26,7 +22,6 @@ public class MRTReminderCenter: NSObject {
         manager.allowsBackgroundLocationUpdates = true
         return manager
     }
-    
     public func requestLocationPermission() {
         switch locationManager.authorizationStatus {
         case .notDetermined, .denied, .restricted:
@@ -36,29 +31,46 @@ public class MRTReminderCenter: NSObject {
         }
     }
     
-    public func setReminder(request: MRTReminderRequest) {
-        print("Checking Notification Permission")
+    let notificationCenter = UNUserNotificationCenter.current()
+    public func requestNotificationPermission() {
+        let options: UNAuthorizationOptions = [.alert, .sound]
+      notificationCenter.requestAuthorization(options: options) { _, _ in }
+    }
+    
+    public private(set) var reminderRadius: Double = 250
+    public func setReminderRadius(to radius: Double) {
+        self.reminderRadius = radius
+    }
+        
+    public func activateReminder(request: MRTReminderRequest) {
+        notificationCenter.delegate = self
+        locationManager.delegate = self
+        
+        currentRequest = request
+        if let nextStation = request.getNextStation()?.region {
+            locationManager.startMonitoring(for: nextStation)
+        }
+    }
+    
+    public func activateNotification(title: String, body: String, at station: MRTReminderStation) {
         notificationCenter.getNotificationSettings() { settings in
             if settings.authorizationStatus == .authorized {
-                print("Notification Permission Authorized!!!")
-                self.activateReminder(request: request)
+                self.createNotification(title: title, body: body, at: station)
             }
         }
     }
-    private func activateReminder(request: MRTReminderRequest) {
-        
+    private func createNotification(title: String, body: String, at station: MRTReminderStation) {
         let notificationContent = UNMutableNotificationContent()
-        notificationContent.title = "You've Arrived!"
-        notificationContent.body = "Get off at \(request.destinationStation.name) station now."
+        notificationContent.title = title
+        notificationContent.body = body
+        notificationContent.sound = .default
         
-        let trigger = UNLocationNotificationTrigger(region: request.destinationLocation, repeats: false)
+        let trigger = UNLocationNotificationTrigger(region: station.region, repeats: false)
         
         let notifRequest = UNNotificationRequest(
             identifier: UUID().uuidString,
             content: notificationContent,
             trigger: trigger)
-        
-        print("Adding Notification Request")
         
         notificationCenter.add(notifRequest) { error in
             if error != nil {
@@ -66,9 +78,6 @@ public class MRTReminderCenter: NSObject {
             }
             else {
                 print("Notification Added!!!")
-                self.notificationCenter.delegate = self
-                self.locationManager.delegate = self
-                self.locationManager.startMonitoring(for: request.destinationLocation)
             }
         }
     }
@@ -89,9 +98,31 @@ extension MRTReminderCenter: UNUserNotificationCenterDelegate {
 extension MRTReminderCenter: CLLocationManagerDelegate {
     public func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
         print("User entered the region")
-        if UIApplication.shared.applicationState == .active {
-            MRTReminderHaptics.shared.playVibration(duration: 0.5, delay: 0.5, repetition: 3)
-        }
         self.locationManager.stopMonitoring(for: region)
+        self.currentRequest.updateCurrentStatus()
+        
+        if currentRequest.stationsRemaining <= 1 {
+            if UIApplication.shared.applicationState == .active {
+                MRTReminderHaptics.shared.playVibration(duration: 0.5, delay: 0.5, repetition: 3)
+            }
+        }
+        
+        self.delegate?.reminderProgressUpdated(stationsTraveled: currentRequest.stationsTraveled,
+                                               stationsRemaining: currentRequest.stationsRemaining,
+                                               totalStations: currentRequest.stationCount)
+        
+        if currentRequest.stationsRemaining > 0, let nextStation = currentRequest.getNextStation() {
+            locationManager.startMonitoring(for: nextStation.region)
+            if currentRequest.stationsRemaining == 2 {
+                activateNotification(title: "You almost arrive!",
+                                     body: "You have 1 station left. Get ready to get off!",
+                                     at: nextStation)
+            }
+            else if currentRequest.stationsRemaining == 1 {
+                activateNotification(title: "You’ve arrived!",
+                                     body: "Get off at \(nextStation.name) station now.",
+                                     at: nextStation)
+            }
+        }
     }
 }

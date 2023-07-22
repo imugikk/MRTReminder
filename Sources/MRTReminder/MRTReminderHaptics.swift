@@ -8,9 +8,7 @@
 import CoreHaptics
 
 public class MRTReminderHaptics {
-    
     public static let shared = MRTReminderHaptics()
-    
     private var hapticEngine: CHHapticEngine?
     
     private init() {
@@ -39,25 +37,16 @@ public class MRTReminderHaptics {
     private func playContinuousVibration(duration: TimeInterval) {
         guard let hapticEngine = hapticEngine else { return }
         
-        // Define the continuous haptic event
         let intensity = CHHapticEventParameter(parameterID: .hapticIntensity, value: 5.0)
         let sharpness = CHHapticEventParameter(parameterID: .hapticSharpness, value: 5.0)
         let continuousEvent = CHHapticEvent(eventType: .hapticContinuous, parameters: [intensity, sharpness], relativeTime: 0, duration: duration)
         
         do {
-            // Create a pattern with the continuous haptic event
             let pattern = try CHHapticPattern(events: [continuousEvent], parameters: [])
-            
-            // Create the haptic advanced pattern player
             let patternPlayer = try hapticEngine.makeAdvancedPlayer(with: pattern)
-            
-            // Enable looping for continuous vibration
             patternPlayer.loopEnabled = true
-            
-            // Start the continuous haptic feedback
             try patternPlayer.start(atTime: 0)
             
-            // Stop the haptic feedback after the desired duration (1 second)
             DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
                 do {
                     try patternPlayer.stop(atTime: CHHapticTimeImmediate)

@@ -1,29 +1,46 @@
 //
-//  File.swift
+//  MRTReminderStation.swift
 //  
 //
 //  Created by Muhammad Fauzul Akbar on 21/07/23.
 //
 
-import Foundation
 import CoreLocation
 
-class MRTReminderStation {
-    public static let shared = MRTReminderStation()
-    private init() { }
+public class MRTReminderStation {
+    public private(set) var name: String
+    public private(set) var coordinate = CLLocationCoordinate2D()
+    public private(set) var leftStation, rightStation: MRTReminderStation?
     
-    public private(set) var listStations: [String: Station] = [:]
+    init(name: String, latitude: Double, longitude: Double) {
+        self.name = name
+        self.coordinate.latitude = latitude
+        self.coordinate.longitude = longitude
+    }
     
-    public func register(stations: [(String, CLLocationCoordinate2D)]) {
-        var prevStation = Station(name: stations[0].0, coordinate: stations[0].1)
-        listStations[stations[0].0] = prevStation
-        for i in 1..<stations.count {
-            var currentStation = Station(name: stations[i].0, coordinate: stations[i].1)
-            currentStation.left = prevStation
-            prevStation.right = currentStation
-            listStations[stations[i].0] = currentStation
-            prevStation = currentStation
+    public func setLeftStation(_ station: MRTReminderStation) {
+        leftStation = station
+    }
+    public func setRightStation(_ station: MRTReminderStation) {
+        rightStation = station
+    }
+    
+    public lazy var region = makeRegion()
+    private func makeRegion() -> CLCircularRegion {
+        let region = CLCircularRegion(
+            center: coordinate,
+            radius: MRTReminderCenter.shared.reminderRadius,
+            identifier: UUID().uuidString)
+        region.notifyOnEntry = true
+        return region
+    }
+    
+    public func getNextStation(right: Bool) -> MRTReminderStation? {
+        if right {
+            return rightStation
+        }
+        else {
+            return leftStation
         }
     }
 }
-
