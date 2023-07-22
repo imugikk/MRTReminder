@@ -35,12 +35,20 @@ public class MRTReminderStation {
         return region
     }
     
-    public func getNextStation(right: Bool) -> MRTReminderStation? {
-        if right {
+    public func getNextStation(nextIsRight: Bool) -> MRTReminderStation? {
+        if nextIsRight {
             return rightStation
         }
         else {
             return leftStation
+        }
+    }
+    public func getPrevStation(nextIsRight: Bool) -> MRTReminderStation? {
+        if nextIsRight {
+            return leftStation
+        }
+        else {
+            return rightStation
         }
     }
 }

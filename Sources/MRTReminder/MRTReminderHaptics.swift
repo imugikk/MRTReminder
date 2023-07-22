@@ -6,13 +6,15 @@
 //
 
 import CoreHaptics
+import UIKit
 
 public class MRTReminderHaptics {
     public static let shared = MRTReminderHaptics()
-    private var engine: CHHapticEngine?
+    public var engine: CHHapticEngine?
     
     private init() {
         engine = createHapticEngine()
+        observeAppBackgroundNotification()
     }
     
     func createHapticEngine() -> CHHapticEngine? {
@@ -24,6 +26,14 @@ public class MRTReminderHaptics {
             print("Error creating haptic engine: \(error)")
             return nil
         }
+    }
+    
+    private func observeAppBackgroundNotification() {
+        NotificationCenter.default.addObserver(self, selector: #selector(appDidEnterBackground), name: UIApplication.didEnterBackgroundNotification, object: nil)
+    }
+    
+    @objc private func appDidEnterBackground() {
+        if engine != nil { engine!.stop() }
     }
     
     public func playVibration(duration: TimeInterval, delay: TimeInterval, repetition: Int) {
