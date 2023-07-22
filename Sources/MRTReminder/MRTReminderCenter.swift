@@ -57,7 +57,6 @@ public class MRTReminderCenter: NSObject {
         let nextIsRight = request.isDirectionToTheRight
 //      var currStation = request.startStation.getPrevStation(nextIsRight: nextIsRight) ?? request.startStation
         
-        print("Monitoring Started...")
         var currIndex = 0
         var currStation = request.startStation
         while true {
@@ -71,6 +70,7 @@ public class MRTReminderCenter: NSObject {
                 currStation = nextStation
             }
         }
+        print("Monitoring Started For \(locationManager.monitoredRegions.count) Regions")
     }
     
     public func deactivateReminder() {
@@ -108,7 +108,7 @@ public class MRTReminderCenter: NSObject {
                 print("Error: \(String(describing: error))")
             }
             else {
-                print("Notification Added!!!")
+                print("Notification Shown")
             }
         }
     }
@@ -116,12 +116,12 @@ public class MRTReminderCenter: NSObject {
 
 extension MRTReminderCenter: UNUserNotificationCenterDelegate {
     public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-        print("Notification Finished 1")
+        print("Notification Dismissed")
         completionHandler()
     }
     
     public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        print("Notification Finished 2")
+        print("Notification Shown On App")
         MRTReminderHaptics.shared.playVibration(duration: 0.5, delay: 0.5, repetition: 3)
         completionHandler(.banner)
     }
@@ -133,13 +133,13 @@ extension MRTReminderCenter: CLLocationManagerDelegate {
         guard let stationIndex = regionIndex[region] else { return }
         guard currentRequest.currStationIndex != stationIndex else { return }
         
-        print("User entered a station")
+        print("User entered a station: \(stationIndex)")
         self.currentRequest.updateCurrentStatus(currStationIndex: stationIndex)
         self.delegate?.reminderProgressUpdated(stationsTraveled: currentRequest.currStationIndex,
                                                stationsRemaining: currentRequest.stationsRemaining,
                                                totalStations: currentRequest.lastStationIndex)
         
-        if currentRequest.stationsRemaining > 0 {
+        if currentRequest.stationsRemaining >= 0 {
             if currentRequest.stationsRemaining == 1 {
                 showNotification(title: "You almost arrive!",
                                      body: "You have 1 station left. Get ready to get off!")

@@ -57,6 +57,6 @@ public class MRTReminderRequest {
     
     public func updateCurrentStatus(currStationIndex: Int) {
         self.currStationIndex = currStationIndex
-        stationsRemaining = lastStationIndex - currStationIndex
+        self.stationsRemaining = lastStationIndex - currStationIndex
     }
 }
