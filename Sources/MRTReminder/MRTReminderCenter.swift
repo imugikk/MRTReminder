@@ -92,6 +92,9 @@ extension MRTReminderCenter: UNUserNotificationCenterDelegate {
     
     public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         print("Notification Finished 2")
+        if UIApplication.shared.applicationState == .active {
+            MRTReminderHaptics.shared.playVibration(duration: 0.5, delay: 0.5, repetition: 3)
+        }
         completionHandler(.banner)
     }
 }
@@ -101,29 +104,23 @@ extension MRTReminderCenter: CLLocationManagerDelegate {
         print("User entered the region")
         self.locationManager.stopMonitoring(for: region)
         self.currentRequest.updateCurrentStatus()
-        
-        if currentRequest.stationsRemaining <= 1 {
-            if UIApplication.shared.applicationState == .active {
-                MRTReminderHaptics.shared.playVibration(duration: 0.5, delay: 0.5, repetition: 3)
-            }
-        }
-        
         self.delegate?.reminderProgressUpdated(stationsTraveled: currentRequest.stationsTraveled,
                                                stationsRemaining: currentRequest.stationsRemaining,
                                                totalStations: currentRequest.stationCount)
         
         if currentRequest.stationsRemaining > 0, let nextStation = currentRequest.getNextStation() {
+            print("Monitoring Next Region...")
             locationManager.startMonitoring(for: nextStation.region)
-            if currentRequest.stationsRemaining == 2 {
-                activateNotification(title: "You almost arrive!",
-                                     body: "You have 1 station left. Get ready to get off!",
-                                     at: nextStation)
-            }
-            else if currentRequest.stationsRemaining == 1 {
-                activateNotification(title: "You’ve arrived!",
-                                     body: "Get off at \(nextStation.name) station now.",
-                                     at: nextStation)
-            }
+//            if currentRequest.stationsRemaining == 2 {
+//                activateNotification(title: "You almost arrive!",
+//                                     body: "You have 1 station left. Get ready to get off!",
+//                                     at: nextStation)
+//            }
+//            else if currentRequest.stationsRemaining == 1 {
+//                activateNotification(title: "You’ve arrived!",
+//                                     body: "Get off at \(nextStation.name) station now.",
+//                                     at: nextStation)
+//            }
         }
     }
 }
