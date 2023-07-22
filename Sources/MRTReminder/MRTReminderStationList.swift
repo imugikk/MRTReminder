@@ -7,7 +7,7 @@
 
 import CoreLocation
 
-class MRTReminderStationList {
+public class MRTReminderStationList {
     public static let shared = MRTReminderStationList()
     private init() { }
     
