@@ -31,7 +31,7 @@ public class MRTReminderCenter: NSObject {
         }
     }
     
-    let notificationCenter = UNUserNotificationCenter.current()
+    private let notificationCenter = UNUserNotificationCenter.current()
     public func requestNotificationPermission() {
         let options: UNAuthorizationOptions = [.alert, .sound]
       notificationCenter.requestAuthorization(options: options) { _, _ in }
