@@ -9,11 +9,18 @@ import CoreHaptics
 
 public class MRTReminderHaptics {
     public static let shared = MRTReminderHaptics()
+    private var engine: CHHapticEngine?
+    
+    private init() {
+        engine = createHapticEngine()
+    }
     
     func createHapticEngine() -> CHHapticEngine? {
+        guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else { return nil }
+        
         do {
             return try CHHapticEngine()
-        } catch {
+        } catch let error {
             print("Error creating haptic engine: \(error)")
             return nil
         }
@@ -34,30 +41,21 @@ public class MRTReminderHaptics {
     }
     
     private func playContinuousVibration(duration: TimeInterval) {
-        guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else {
-            print("Haptics not supported on this device.")
-            return
-        }
-
-        guard let hapticEngine = createHapticEngine() else { return }
+        guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else { return }
+        guard let engine = self.engine else { return }
         
         let intensity = CHHapticEventParameter(parameterID: .hapticIntensity, value: 5.0)
         let sharpness = CHHapticEventParameter(parameterID: .hapticSharpness, value: 5.0)
         let continuousEvent = CHHapticEvent(eventType: .hapticContinuous, parameters: [intensity, sharpness], relativeTime: 0, duration: duration)
         
         do {
+            try engine.start()
             let pattern = try CHHapticPattern(events: [continuousEvent], parameters: [])
-            let patternPlayer = try hapticEngine.makePlayer(with: pattern)
-            try hapticEngine.start()
-            try patternPlayer.start(atTime: 0)
+            let player = try engine.makePlayer(with: pattern)
+            try player.start(atTime: CHHapticTimeImmediate)
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
-                do {
-                    try patternPlayer.stop(atTime: 0)
-                    hapticEngine.stop()
-                } catch let error {
-                    print("Error stopping continuous vibration: \(error)")
-                }
+            engine.notifyWhenPlayersFinished { _ in
+                return .stopEngine
             }
         } catch let error {
             print("Error playing continuous vibration: \(error)")
