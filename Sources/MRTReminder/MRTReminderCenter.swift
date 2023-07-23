@@ -14,6 +14,7 @@ public class MRTReminderCenter: NSObject {
     
     public private(set) var currentRequest: MRTReminderRequest!
     private var regionIndex = [CLRegion: Int]()
+    private var neighboringRegionIndex = [CLRegion: Int]()
     
     public var isReminderEnabled = true
     public var isHapticEnabled = true
@@ -178,13 +179,50 @@ extension MRTReminderCenter: CLLocationManagerDelegate {
             showNotification(title: "You’ve arrived!",
                              body: "Get off at \(currentRequest.endStation.name) station now.")
         }
-        else if currentRequest.currStationIndex > currentRequest.lastStationIndex {
+        else if currentRequest.currStationIndex > currentRequest.lastStationIndex &&
+                    currentRequest.prevStationIndex < currentRequest.currStationIndex {
             showNotification(title: "You missed your destination!",
                              body: "Get off the station now & change your train lane.")
         }
-        else if currentRequest.currStationIndex < 0 {
+        else if currentRequest.currStationIndex < 0 &&
+                    currentRequest.prevStationIndex > currentRequest.currStationIndex {
             showNotification(title: "Your train is heading the wrong way!",
                              body: "Get off the station now & change your train lane.")
         }
+        
+        monitorNeighbors(stationIndex: stationIndex)
+    }
+    
+    func monitorNeighbors(stationIndex: Int) {
+        for region in neighboringRegionIndex.keys {
+            locationManager.stopMonitoring(for: region)
+        }
+        neighboringRegionIndex.removeAll()
+        
+        let nextIsRight = currentRequest.isDirectionToTheRight
+        let currStation = currentRequest.currentStation!
+        
+        if let nextStation = currStation.getNextStation(nextIsRight: nextIsRight) {
+            if !regionMonitored(index: stationIndex + 1) {
+                locationManager.startMonitoring(for: nextStation.region)
+                neighboringRegionIndex[nextStation.region] = stationIndex + 1
+            }
+        }
+        if let prevStation = currStation.getPrevStation(nextIsRight: nextIsRight) {
+            if !regionMonitored(index: stationIndex - 1) {
+                locationManager.startMonitoring(for: prevStation.region)
+                neighboringRegionIndex[prevStation.region] = stationIndex - 1
+            }
+        }
+    }
+    
+    func regionMonitored(index: Int) -> Bool {
+        if regionIndex.values.contains(index) {
+            return true
+        }
+        if neighboringRegionIndex.values.contains(index) {
+            return true
+        }
+        return false
     }
 }

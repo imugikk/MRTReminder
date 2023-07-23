@@ -20,6 +20,7 @@ public class MRTReminderRequest {
             prevStationIndex = oldValue
         }
     }
+    public private(set) var currentStation: MRTReminderStation!
     public private(set) var prevStationIndex = 0
     
     public var stationsRemaining: Int {
@@ -38,6 +39,7 @@ public class MRTReminderRequest {
     
     public init(startingStation: MRTReminderStation, destinationStation: MRTReminderStation) {
         self.startStation = startingStation
+        self.currentStation = startingStation
         self.endStation = destinationStation
         setDestination(station: destinationStation)
     }
@@ -75,6 +77,16 @@ public class MRTReminderRequest {
     
     internal func updateCurrentStatus(currStationIndex: Int) {
         self.currStationIndex = currStationIndex
+        
+        let offset = currStationIndex - prevStationIndex
+        for _ in 0..<abs(offset) {
+            if offset > 0, let nextStation = currentStation.getNextStation(nextIsRight: isDirectionToTheRight) {
+                currentStation = nextStation
+            }
+            else if offset < 0, let prevStation = currentStation.getPrevStation(nextIsRight: isDirectionToTheRight) {
+                currentStation = prevStation
+            }
+        }
     }
     
     private func getExtraNeighboringStationCount() -> Int {
