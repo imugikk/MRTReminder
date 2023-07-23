@@ -8,5 +8,5 @@
 import Foundation
 
 public protocol MRTReminderProgressDelegate {
-    func reminderProgressUpdated(stationsTraveled: Int, stationsRemaining: Int, totalStations: Int)
+    func reminderProgressUpdated(currentStationIndex: Int, lastStationIndex: Int, stationsRemaining: Int)
 }

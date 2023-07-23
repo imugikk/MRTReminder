@@ -175,9 +175,9 @@ extension MRTReminderCenter: CLLocationManagerDelegate {
         
         print("User entered a station: \(stationIndex)")
         self.currentRequest.updateCurrentStatus(currStationIndex: stationIndex)
-        self.delegate?.reminderProgressUpdated(stationsTraveled: currentRequest.currStationIndex,
-                                               stationsRemaining: currentRequest.stationsRemaining,
-                                               totalStations: currentRequest.lastStationIndex)
+        self.delegate?.reminderProgressUpdated(currentStationIndex: currentRequest.currStationIndex,
+                                               lastStationIndex: currentRequest.lastStationIndex,
+                                               stationsRemaining: currentRequest.stationsRemaining)
         
         if currentRequest.stationsRemaining == 1 {
             showNotification(title: "You almost arrive!",

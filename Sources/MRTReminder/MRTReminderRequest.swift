@@ -16,7 +16,8 @@ public class MRTReminderRequest {
     public private(set) var lastStationIndex = 0
     public private(set) var currStationIndex = 0
     public private(set) var stationsRemaining = 0
-    public private(set) var extraNeighboringStationCount = 0
+    public private(set) var stationCount = 0
+    public private(set) var stationCountIncludingNeighbors = 0
     
     public init(startingStation: MRTReminderStation, destinationStation: MRTReminderStation) {
         self.startStation = startingStation
@@ -29,7 +30,8 @@ public class MRTReminderRequest {
         isDirectionToTheRight = getJourneyDirection()
         lastStationIndex = getIndexOfLastStation()
         stationsRemaining = lastStationIndex
-        extraNeighboringStationCount = getExtraNeighboringStationCount()
+        stationCount = lastStationIndex
+        stationCountIncludingNeighbors = lastStationIndex + getExtraNeighboringStationCount()
     }
     
     private func getJourneyDirection() -> Bool {
@@ -62,14 +64,16 @@ public class MRTReminderRequest {
         self.stationsRemaining = lastStationIndex - currStationIndex
     }
     
-    public func getExtraNeighboringStationCount() -> Int {
+    private func getExtraNeighboringStationCount() -> Int {
         var extraStation = 0
-        if startStation.getPrevStation(nextIsRight: isDirectionToTheRight) != nil {
-            extraStation += 1
-        }
-        if endStation.getNextStation(nextIsRight: isDirectionToTheRight) != nil {
-            extraStation += 1
-        }
+        if startStationHasPreviousStation() { extraStation += 1 }
+        if endStationHasNextStation() { extraStation += 1 }
         return extraStation
+    }
+    public func startStationHasPreviousStation() -> Bool {
+        return startStation.getPrevStation(nextIsRight: isDirectionToTheRight) != nil
+    }
+    public func endStationHasNextStation() -> Bool {
+        return endStation.getNextStation(nextIsRight: isDirectionToTheRight) != nil
     }
 }
