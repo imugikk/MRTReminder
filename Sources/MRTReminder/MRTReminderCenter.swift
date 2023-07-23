@@ -23,12 +23,7 @@ public class MRTReminderCenter: NSObject {
         return manager
     }
     public func requestLocationPermission() {
-        switch locationManager.authorizationStatus {
-        case .notDetermined, .denied, .restricted:
-            locationManager.requestAlwaysAuthorization()
-        default:
-            break
-        }
+        locationManager.requestAlwaysAuthorization()
     }
     
     //Notification Center and Permission
@@ -41,6 +36,7 @@ public class MRTReminderCenter: NSObject {
     public private(set) var reminderRadius: Double = 250
     public func setReminderRadius(to radius: Double) {
         self.reminderRadius = radius
+        self.reminderRadius = min(radius, locationManager.maximumRegionMonitoringDistance)
     }
     
     private var delegate: MRTReminderProgressDelegate?
@@ -49,6 +45,8 @@ public class MRTReminderCenter: NSObject {
     }
     
     public func activateReminder(request: MRTReminderRequest) {
+        guard CLLocationManager.isMonitoringAvailable(for: CLCircularRegion.self) else { return }
+        
         notificationCenter.delegate = self
         locationManager.delegate = self
         
@@ -75,10 +73,10 @@ public class MRTReminderCenter: NSObject {
     public func deactivateReminder() {
         print("Monitoring Ended For \(locationManager.monitoredRegions.count) Regions")
         
-        regionIndex.removeAll()
-        for region in locationManager.monitoredRegions {
+        for region in regionIndex.keys {
             locationManager.stopMonitoring(for: region)
         }
+        regionIndex.removeAll()
         currentRequest = nil
     }
     
@@ -129,6 +127,7 @@ extension MRTReminderCenter: UNUserNotificationCenterDelegate {
 extension MRTReminderCenter: CLLocationManagerDelegate {
     public func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
         
+        guard region is CLCircularRegion else { return }
         guard let stationIndex = regionIndex[region] else { return }
         guard currentRequest.currStationIndex != stationIndex else { return }
         
@@ -137,16 +136,14 @@ extension MRTReminderCenter: CLLocationManagerDelegate {
         self.delegate?.reminderProgressUpdated(stationsTraveled: currentRequest.currStationIndex,
                                                stationsRemaining: currentRequest.stationsRemaining,
                                                totalStations: currentRequest.lastStationIndex)
-
-        if currentRequest.stationsRemaining >= 0 {
-            if currentRequest.stationsRemaining == 1 {
-                showNotification(title: "You almost arrive!",
-                                     body: "You have 1 station left. Get ready to get off!")
-            }
-            else if currentRequest.stationsRemaining == 0 {
-                showNotification(title: "You’ve arrived!",
-                                 body: "Get off at \(currentRequest.endStation.name) station now.")
-            }
+        
+        if currentRequest.stationsRemaining == 1 {
+            showNotification(title: "You almost arrive!",
+                             body: "You have 1 station left. Get ready to get off!")
+        }
+        else if currentRequest.stationsRemaining == 0 {
+            showNotification(title: "You’ve arrived!",
+                             body: "Get off at \(currentRequest.endStation.name) station now.")
         }
     }
 }
