@@ -132,8 +132,6 @@ public class MRTReminderCenter: NSObject {
                 print("Notification Shown")
             }
         }
-        
-        passiveNotification = false
     }
 }
 
@@ -150,6 +148,7 @@ extension MRTReminderCenter: UNUserNotificationCenterDelegate {
             completionHandler(.banner)
         }
         else {
+            passiveNotification = false
             completionHandler([.banner, .sound])
         }
     }
