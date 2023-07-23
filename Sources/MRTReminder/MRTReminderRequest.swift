@@ -59,4 +59,15 @@ public class MRTReminderRequest {
         self.currStationIndex = currStationIndex
         self.stationsRemaining = lastStationIndex - currStationIndex
     }
+    
+    public func getExtraNeighboringStationCount() -> Int {
+        var extraStation = 0
+        if endStation.getNextStation(nextIsRight: isDirectionToTheRight) != nil {
+            extraStation += 1
+        }
+        if startStation.getPrevStation(nextIsRight: isDirectionToTheRight) != nil {
+            extraStation += 1
+        }
+        return extraStation
+    }
 }
