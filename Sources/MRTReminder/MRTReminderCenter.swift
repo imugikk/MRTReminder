@@ -15,6 +15,20 @@ public class MRTReminderCenter: NSObject {
     private var currentRequest: MRTReminderRequest!
     private var regionIndex = [CLRegion: Int]()
     
+    private var isReminderEnabled = true
+    private var isHapticEnabled = true
+    private var isSoundEnabled = true
+    private var passiveNotification = false
+    public func setReminderEnabled(_ enabled: Bool) {
+        isReminderEnabled = enabled
+    }
+    public func setHapticEnabled(_ enabled: Bool) {
+        isHapticEnabled = enabled
+    }
+    public func setSoundEnabled(_ enabled: Bool) {
+        isSoundEnabled = enabled
+    }
+    
     //Location Manager and Permission
     private lazy var locationManager = makeLocationManager()
     private func makeLocationManager() -> CLLocationManager {
@@ -78,20 +92,30 @@ public class MRTReminderCenter: NSObject {
         }
         regionIndex.removeAll()
         currentRequest = nil
+        
+        showNonHapticNotification(title: "Your journey is done!",
+                                  body: "Thank you for commuting with MRT Jakarta.")
     }
     
     public func showNotification(title: String, body: String) {
+        guard isReminderEnabled else { return }
+        
         notificationCenter.getNotificationSettings() { settings in
             if settings.authorizationStatus == .authorized {
                 self.createNotification(title: title, body: body)
             }
         }
     }
+    public func showNonHapticNotification(title: String, body: String) {
+        passiveNotification = true
+        showNotification(title: title, body: body)
+    }
     private func createNotification(title: String, body: String) {
         let notificationContent = UNMutableNotificationContent()
         notificationContent.title = title
         notificationContent.body = body
-        notificationContent.sound = .default
+        
+        if isSoundEnabled { notificationContent.sound = .default }
         
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.5, repeats: false)
         
@@ -108,6 +132,8 @@ public class MRTReminderCenter: NSObject {
                 print("Notification Shown")
             }
         }
+        
+        passiveNotification = false
     }
 }
 
@@ -119,8 +145,13 @@ extension MRTReminderCenter: UNUserNotificationCenterDelegate {
     
     public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         print("Notification Shown On App")
-        MRTReminderHaptics.shared.playVibration(duration: 0.5, delay: 0.5, repetition: 3)
-        completionHandler(.banner)
+        if isHapticEnabled && !passiveNotification {
+            MRTReminderHaptics.shared.playVibration(duration: 0.5, delay: 0.5, repetition: 3)
+            completionHandler(.banner)
+        }
+        else {
+            completionHandler([.banner, .sound])
+        }
     }
 }
 
