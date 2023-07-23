@@ -134,10 +134,7 @@ public class MRTReminderCenter: NSObject {
             trigger: trigger)
         
         notificationCenter.add(notifRequest) { error in
-            if error != nil {
-                print("Error: \(String(describing: error))")
-            }
-            else {
+            if error == nil {
                 print("Notification Shown")
             }
         }
@@ -146,12 +143,10 @@ public class MRTReminderCenter: NSObject {
 
 extension MRTReminderCenter: UNUserNotificationCenterDelegate {
     public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-        print("Notification Dismissed")
         completionHandler()
     }
     
     public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        print("Notification Shown On App")
         if isHapticEnabled && !passiveNotification {
             MRTReminderHaptics.shared.playVibration(duration: 0.5, delay: 0.5, repetition: 3)
             completionHandler(.banner)
@@ -218,8 +213,6 @@ extension MRTReminderCenter: CLLocationManagerDelegate {
                 neighboringRegionIndex[prevStation.region] = stationIndex - 1
             }
         }
-        
-        print("Monitoring Added: \(neighboringRegionIndex.count + regionIndex.count)")
     }
     
     func regionMonitored(index: Int) -> Bool {

@@ -23,7 +23,6 @@ public class MRTReminderHaptics {
         do {
             return try CHHapticEngine()
         } catch let error {
-            print("Error creating haptic engine: \(error)")
             return nil
         }
     }
