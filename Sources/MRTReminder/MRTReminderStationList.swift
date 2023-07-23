@@ -25,4 +25,7 @@ public class MRTReminderStationList {
     public static func getStation(withName name: String) -> MRTReminderStation {
         return stationList[name]!
     }
+    public static func getStationCount() -> Int {
+        return stationList.count
+    }
 }

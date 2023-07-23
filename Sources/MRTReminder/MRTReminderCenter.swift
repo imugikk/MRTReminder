@@ -15,19 +15,10 @@ public class MRTReminderCenter: NSObject {
     public private(set) var currentRequest: MRTReminderRequest!
     private var regionIndex = [CLRegion: Int]()
     
-    private var isReminderEnabled = true
-    private var isHapticEnabled = true
-    private var isSoundEnabled = true
+    public var isReminderEnabled = true
+    public var isHapticEnabled = true
+    public var isSoundEnabled = true
     private var passiveNotification = false
-    public func setReminderEnabled(_ enabled: Bool) {
-        isReminderEnabled = enabled
-    }
-    public func setHapticEnabled(_ enabled: Bool) {
-        isHapticEnabled = enabled
-    }
-    public func setSoundEnabled(_ enabled: Bool) {
-        isSoundEnabled = enabled
-    }
     
     //Location Manager and Permission
     private lazy var locationManager = makeLocationManager()
@@ -48,20 +39,17 @@ public class MRTReminderCenter: NSObject {
     }
     
     public private(set) var reminderRadius: Double = 250
-    public func setReminderRadiusInMeters(to radius: Double) {
+    public func setReminderRadius(inMeters radius: Double) {
         self.reminderRadius = radius
         self.reminderRadius = min(radius, locationManager.maximumRegionMonitoringDistance)
     }
     
-    public private(set) var averageTravelDurationPerStation: Double = 2.0
-    public func setAverageTravelDurationInMinutes(to duration: Double) {
-        self.averageTravelDurationPerStation = duration
+    public private(set) var averageDurationPerStation: Double = 2.0
+    public func setAverageDurationPerStation(inMinutes duration: Double) {
+        self.averageDurationPerStation = duration
     }
     
-    private var delegate: MRTReminderProgressDelegate?
-    public func setProgressDelegate(_ delegate: MRTReminderProgressDelegate) {
-        self.delegate = delegate
-    }
+    public var progressDelegate: MRTReminderProgressDelegate?
     
     public func activateReminder(request: MRTReminderRequest) {
         guard CLLocationManager.isMonitoringAvailable(for: CLCircularRegion.self) else { return }
@@ -71,7 +59,6 @@ public class MRTReminderCenter: NSObject {
         
         currentRequest = request
         let nextIsRight = request.isDirectionToTheRight
-//      var currStation = request.startStation.getPrevStation(nextIsRight: nextIsRight) ?? request.startStation
         
         var currIndex = 0
         var currStation = request.startStation
@@ -180,7 +167,7 @@ extension MRTReminderCenter: CLLocationManagerDelegate {
         
         print("User entered a station: \(stationIndex)")
         self.currentRequest.updateCurrentStatus(currStationIndex: stationIndex)
-        self.delegate?.reminderProgressUpdated(currentStationIndex: currentRequest.currStationIndex,
+        self.progressDelegate?.reminderProgressUpdated(currentStationIndex: currentRequest.currStationIndex,
                                                lastStationIndex: currentRequest.lastStationIndex,
                                                stationsRemaining: currentRequest.stationsRemaining)
         

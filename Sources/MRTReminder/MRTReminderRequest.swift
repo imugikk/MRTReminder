@@ -14,11 +14,27 @@ public class MRTReminderRequest {
     
     public private(set) var isDirectionToTheRight = false
     public private(set) var lastStationIndex = 0
-    public private(set) var currStationIndex = 0
-    public private(set) var stationsRemaining = 0
-    public private(set) var stationCount = 0
-    public private(set) var stationCountIncludingNeighbors = 0
-    public private(set) var estimatedTimeOfArrival = 0.0
+    public private(set) var currStationIndex = 0 {
+        didSet {
+            guard currStationIndex != oldValue else { return }
+            prevStationIndex = oldValue
+        }
+    }
+    public private(set) var prevStationIndex = 0
+    
+    public var stationsRemaining: Int {
+        lastStationIndex - currStationIndex
+    }
+    public var stationCount: Int {
+        lastStationIndex
+    }
+    
+    public var stationCountIncludingNeighbors: Int {
+        lastStationIndex + getExtraNeighboringStationCount()
+    }
+    public var estimatedTimeArrival: Double {
+        MRTReminderCenter.shared.averageDurationPerStation * Double(stationCount)
+    }
     
     public init(startingStation: MRTReminderStation, destinationStation: MRTReminderStation) {
         self.startStation = startingStation
@@ -30,10 +46,6 @@ public class MRTReminderRequest {
         self.endStation = station
         isDirectionToTheRight = getJourneyDirection()
         lastStationIndex = getIndexOfLastStation()
-        stationsRemaining = lastStationIndex
-        stationCount = lastStationIndex
-        stationCountIncludingNeighbors = lastStationIndex + getExtraNeighboringStationCount()
-        estimatedTimeOfArrival = MRTReminderCenter.shared.averageTravelDurationPerStation * Double(stationCount)
     }
     
     private func getJourneyDirection() -> Bool {
@@ -61,9 +73,8 @@ public class MRTReminderRequest {
         return total
     }
     
-    public func updateCurrentStatus(currStationIndex: Int) {
+    internal func updateCurrentStatus(currStationIndex: Int) {
         self.currStationIndex = currStationIndex
-        self.stationsRemaining = lastStationIndex - currStationIndex
     }
     
     private func getExtraNeighboringStationCount() -> Int {

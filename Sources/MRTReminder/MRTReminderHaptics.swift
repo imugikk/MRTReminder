@@ -10,14 +10,14 @@ import UIKit
 
 public class MRTReminderHaptics {
     public static let shared = MRTReminderHaptics()
-    public var engine: CHHapticEngine?
+    private var engine: CHHapticEngine?
     
     private init() {
         engine = createHapticEngine()
         observeAppBackgroundNotification()
     }
     
-    func createHapticEngine() -> CHHapticEngine? {
+    private func createHapticEngine() -> CHHapticEngine? {
         guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else { return nil }
         
         do {
