@@ -96,8 +96,12 @@ public class MRTReminderCenter: NSObject {
             locationManager.stopMonitoring(for: region)
         }
         regionIndex.removeAll()
-        currentRequest = nil
+        for region in neighboringRegionIndex.keys {
+            locationManager.stopMonitoring(for: region)
+        }
+        neighboringRegionIndex.removeAll()
         
+        currentRequest = nil
         showNonHapticNotification(title: "Your journey is done!",
                                   body: "Thank you for commuting with MRT Jakarta.")
     }
@@ -162,7 +166,7 @@ extension MRTReminderCenter: UNUserNotificationCenterDelegate {
 extension MRTReminderCenter: CLLocationManagerDelegate {
     public func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
         guard region is CLCircularRegion else { return }
-        guard let stationIndex = regionIndex[region] else { return }
+        guard let stationIndex = regionIndex[region] ?? neighboringRegionIndex[region] else { return }
         guard currentRequest.currStationIndex != stationIndex else { return }
         
         print("User entered a station: \(stationIndex)")
@@ -214,6 +218,8 @@ extension MRTReminderCenter: CLLocationManagerDelegate {
                 neighboringRegionIndex[prevStation.region] = stationIndex - 1
             }
         }
+        
+        print("Monitoring Added: \(neighboringRegionIndex.count + regionIndex.count)")
     }
     
     func regionMonitored(index: Int) -> Bool {
