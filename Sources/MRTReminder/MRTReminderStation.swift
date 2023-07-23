@@ -18,6 +18,12 @@ public class MRTReminderStation {
         self.coordinate.longitude = longitude
     }
     
+    public func getInitial() -> String {
+        let words = name.components(separatedBy: CharacterSet.whitespacesAndNewlines)
+        let initials = words.compactMap { $0.first }
+        return String(initials)
+    }
+    
     public func setLeftStation(_ station: MRTReminderStation) {
         leftStation = station
     }

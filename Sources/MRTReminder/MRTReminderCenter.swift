@@ -48,9 +48,14 @@ public class MRTReminderCenter: NSObject {
     }
     
     public private(set) var reminderRadius: Double = 250
-    public func setReminderRadius(to radius: Double) {
+    public func setReminderRadiusInMeters(to radius: Double) {
         self.reminderRadius = radius
         self.reminderRadius = min(radius, locationManager.maximumRegionMonitoringDistance)
+    }
+    
+    public private(set) var averageTravelDurationPerStation: Double = 2.0
+    public func setAverageTravelDurationInMinutes(to duration: Double) {
+        self.averageTravelDurationPerStation = duration
     }
     
     private var delegate: MRTReminderProgressDelegate?

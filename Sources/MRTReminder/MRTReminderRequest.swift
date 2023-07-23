@@ -18,6 +18,7 @@ public class MRTReminderRequest {
     public private(set) var stationsRemaining = 0
     public private(set) var stationCount = 0
     public private(set) var stationCountIncludingNeighbors = 0
+    public private(set) var estimatedTimeOfArrival = 0.0
     
     public init(startingStation: MRTReminderStation, destinationStation: MRTReminderStation) {
         self.startStation = startingStation
@@ -32,6 +33,7 @@ public class MRTReminderRequest {
         stationsRemaining = lastStationIndex
         stationCount = lastStationIndex
         stationCountIncludingNeighbors = lastStationIndex + getExtraNeighboringStationCount()
+        estimatedTimeOfArrival = MRTReminderCenter.shared.averageTravelDurationPerStation * Double(stationCount)
     }
     
     private func getJourneyDirection() -> Bool {
