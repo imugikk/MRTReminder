@@ -69,7 +69,7 @@ public class MRTReminderCenter: NSObject {
         notificationContent.body = body
         notificationContent.sound = .default
         
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0, repeats: false)
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.5, repeats: false)
         
         let notifRequest = UNNotificationRequest(
             identifier: UUID().uuidString,
