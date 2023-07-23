@@ -7,15 +7,14 @@
 
 import CoreLocation
 import UserNotifications
-import UIKit
 
 public class MRTReminderCenter: NSObject {
     public static let shared = MRTReminderCenter()
     private override init() { super.init() }
     
     private var currentRequest: MRTReminderRequest!
-    public var delegate: MRTReminderProgressDelegate?
     
+    //Location Manager and Permission
     private lazy var locationManager = makeLocationManager()
     private func makeLocationManager() -> CLLocationManager {
         let manager = CLLocationManager()
@@ -23,14 +22,10 @@ public class MRTReminderCenter: NSObject {
         return manager
     }
     public func requestLocationPermission() {
-        switch locationManager.authorizationStatus {
-        case .notDetermined, .denied, .restricted:
-            locationManager.requestWhenInUseAuthorization()
-        default:
-            break
-        }
+        locationManager.requestAlwaysAuthorization()
     }
     
+    //Notification Center and Permission
     private let notificationCenter = UNUserNotificationCenter.current()
     public func requestNotificationPermission() {
         let options: UNAuthorizationOptions = [.alert, .sound]
@@ -40,9 +35,17 @@ public class MRTReminderCenter: NSObject {
     public private(set) var reminderRadius: Double = 250
     public func setReminderRadius(to radius: Double) {
         self.reminderRadius = radius
+        self.reminderRadius = min(radius, locationManager.maximumRegionMonitoringDistance)
     }
+    
+    private var delegate: MRTReminderProgressDelegate?
+     public func setProgressDelegate(_ delegate: MRTReminderProgressDelegate) {
+         self.delegate = delegate
+     }
         
     public func activateReminder(request: MRTReminderRequest) {
+        guard CLLocationManager.isMonitoringAvailable(for: CLCircularRegion.self) else { return }
+        
         notificationCenter.delegate = self
         locationManager.delegate = self
         
@@ -53,20 +56,20 @@ public class MRTReminderCenter: NSObject {
         }
     }
     
-    public func activateNotification(title: String, body: String, at station: MRTReminderStation) {
+    public func showNotification(title: String, body: String) {
         notificationCenter.getNotificationSettings() { settings in
             if settings.authorizationStatus == .authorized {
-                self.createNotification(title: title, body: body, at: station)
+                self.createNotification(title: title, body: body)
             }
         }
     }
-    private func createNotification(title: String, body: String, at station: MRTReminderStation) {
+    private func createNotification(title: String, body: String) {
         let notificationContent = UNMutableNotificationContent()
         notificationContent.title = title
         notificationContent.body = body
         notificationContent.sound = .default
         
-        let trigger = UNLocationNotificationTrigger(region: station.region, repeats: false)
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0, repeats: false)
         
         let notifRequest = UNNotificationRequest(
             identifier: UUID().uuidString,
@@ -78,49 +81,61 @@ public class MRTReminderCenter: NSObject {
                 print("Error: \(String(describing: error))")
             }
             else {
-                print("Notification Added!!!")
+                print("Notification Shown")
             }
         }
     }
+    
+    public func deactivateReminder() {
+        print("Monitoring Ended For \(locationManager.monitoredRegions.count) Regions")
+         for region in locationManager.monitoredRegions {
+             locationManager.stopMonitoring(for: region)
+         }
+         currentRequest = nil
+     }
 }
 
 extension MRTReminderCenter: UNUserNotificationCenterDelegate {
     public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-        print("Notification Finished 1")
+        print("Notification Dismissed")
         completionHandler()
     }
     
     public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        print("Notification Finished 2")
-        if UIApplication.shared.applicationState == .active {
-            MRTReminderHaptics.shared.playVibration(duration: 0.5, delay: 0.5, repetition: 3)
-        }
+        print("Notification Shown On App")
+        MRTReminderHaptics.shared.playVibration(duration: 0.5, delay: 0.5, repetition: 3)
         completionHandler(.banner)
     }
 }
 
 extension MRTReminderCenter: CLLocationManagerDelegate {
     public func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
-        print("User entered the region")
-        self.locationManager.stopMonitoring(for: region)
+        print("User entered a station")
+        self.stopMonitoring(for: region)
         self.currentRequest.updateCurrentStatus()
-        self.delegate?.reminderProgressUpdated(stationsTraveled: currentRequest.stationsTraveled,
+        self.delegate?.reminderProgressUpdated(stationsTraveled: currentRequest.currStationIndex,
                                                stationsRemaining: currentRequest.stationsRemaining,
-                                               totalStations: currentRequest.stationCount)
+                                               totalStations: currentRequest.lastStationIndex)
+        
+        if currentRequest.stationsRemaining == 1 {
+            showNotification(title: "You almost arrive!",
+                                 body: "You have 1 station left. Get ready to get off!")
+        }
+        else if currentRequest.stationsRemaining == 0 {
+            showNotification(title: "You’ve arrived!",
+                             body: "Get off at \(currentRequest.endStation.name) station now.")
+        }
         
         if currentRequest.stationsRemaining > 0, let nextStation = currentRequest.getNextStation() {
             print("Monitoring Next Region...")
             locationManager.startMonitoring(for: nextStation.region)
-//            if currentRequest.stationsRemaining == 2 {
-//                activateNotification(title: "You almost arrive!",
-//                                     body: "You have 1 station left. Get ready to get off!",
-//                                     at: nextStation)
-//            }
-//            else if currentRequest.stationsRemaining == 1 {
-//                activateNotification(title: "You’ve arrived!",
-//                                     body: "Get off at \(nextStation.name) station now.",
-//                                     at: nextStation)
-//            }
         }
+    }
+    
+    private func stopMonitoring(for region: CLRegion) {
+      for currRegion in locationManager.monitoredRegions {
+        guard currRegion.identifier == region.identifier else { continue }
+        locationManager.stopMonitoring(for: currRegion)
+      }
     }
 }

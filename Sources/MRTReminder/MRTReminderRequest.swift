@@ -13,8 +13,8 @@ public class MRTReminderRequest {
     public private(set) var endStation: MRTReminderStation
     
     public private(set) var isDirectionToTheRight = false
-    public private(set) var stationCount = 0
-    public private(set) var stationsTraveled = 0
+    public private(set) var lastStationIndex = 0
+    public private(set) var currStationIndex = 0
     public private(set) var stationsRemaining = 0
     
     public var currentStation: MRTReminderStation
@@ -24,20 +24,18 @@ public class MRTReminderRequest {
         self.endStation = destinationStation
         
         currentStation = startStation
-        isDirectionToTheRight = calculateDirection()
-        stationCount = calculateStationCount()
-        stationsRemaining = stationCount
+        setDestination(station: destinationStation)
     }
     
     public func setDestination(station: MRTReminderStation) {
         self.endStation = station
         
-        isDirectionToTheRight = calculateDirection()
-        stationCount = calculateStationCount()
-        stationsRemaining = stationCount
+        isDirectionToTheRight = getJourneyDirection()
+        lastStationIndex = getIndexOfLastStation()
+        stationsRemaining = lastStationIndex
     }
     
-    private func calculateDirection() -> Bool {
+    private func getJourneyDirection() -> Bool {
         var right = false
         var currStation = startStation
         while let nextStation = currStation.rightStation {
@@ -49,10 +47,10 @@ public class MRTReminderRequest {
         }
         return right
     }
-    private func calculateStationCount() -> Int {
+    private func getIndexOfLastStation() -> Int {
         var total = 0
         var currStation = startStation
-        while let nextStation = currStation.getNextStation(right: isDirectionToTheRight) {
+        while let nextStation = currStation.getNextStation(nextIsRight: isDirectionToTheRight) {
             total += 1
             if nextStation === endStation {
                 break
@@ -62,10 +60,10 @@ public class MRTReminderRequest {
         return total
     }
     public func getNextStation() -> MRTReminderStation? {
-        return currentStation.getNextStation(right: isDirectionToTheRight)
+        return currentStation.getNextStation(nextIsRight: isDirectionToTheRight)
     }
     public func updateCurrentStatus() {
-        stationsTraveled += 1
+        currStationIndex += 1
         stationsRemaining -= 1
         
         if let nextStation = getNextStation() {
