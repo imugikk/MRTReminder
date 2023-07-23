@@ -12,10 +12,10 @@ public class MRTReminderStation {
     public private(set) var coordinate = CLLocationCoordinate2D()
     public private(set) var leftStation, rightStation: MRTReminderStation?
     
-    public init(name: String, latitude: Double, longitude: Double) {
+    public init(name: String, coordinate:(latitude: Double, longitude: Double)) {
         self.name = name
-        self.coordinate.latitude = latitude
-        self.coordinate.longitude = longitude
+        self.coordinate.latitude = coordinate.latitude
+        self.coordinate.longitude = coordinate.longitude
     }
     
     public func getInitial() -> String {
