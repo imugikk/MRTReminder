@@ -160,7 +160,6 @@ extension MRTReminderCenter: UNUserNotificationCenterDelegate {
 
 extension MRTReminderCenter: CLLocationManagerDelegate {
     public func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
-        
         guard region is CLCircularRegion else { return }
         guard let stationIndex = regionIndex[region] else { return }
         guard currentRequest.currStationIndex != stationIndex else { return }
@@ -171,7 +170,7 @@ extension MRTReminderCenter: CLLocationManagerDelegate {
                                                lastStationIndex: currentRequest.lastStationIndex,
                                                stationsRemaining: currentRequest.stationsRemaining)
         
-        if currentRequest.stationsRemaining == 1 {
+        if currentRequest.stationsRemaining == 1 && currentRequest.prevStationIndex < currentRequest.currStationIndex {
             showNotification(title: "You almost arrive!",
                              body: "You have 1 station left. Get ready to get off!")
         }
