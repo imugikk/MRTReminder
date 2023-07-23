@@ -12,7 +12,7 @@ public class MRTReminderCenter: NSObject {
     public static let shared = MRTReminderCenter()
     private override init() { super.init() }
     
-    private var currentRequest: MRTReminderRequest!
+    public private(set) var currentRequest: MRTReminderRequest!
     private var regionIndex = [CLRegion: Int]()
     
     private var isReminderEnabled = true
@@ -70,6 +70,12 @@ public class MRTReminderCenter: NSObject {
         
         var currIndex = 0
         var currStation = request.startStation
+        
+        if let prevStation = request.startStation.getPrevStation(nextIsRight: nextIsRight) {
+            currIndex = -1
+            currStation = prevStation
+        }
+        
         while true {
             locationManager.startMonitoring(for: currStation.region)
             regionIndex[currStation.region] = currIndex
@@ -81,6 +87,12 @@ public class MRTReminderCenter: NSObject {
                 currStation = nextStation
             }
         }
+        
+        if let nextStation = currStation.getNextStation(nextIsRight: nextIsRight) {
+            locationManager.startMonitoring(for: nextStation.region)
+            regionIndex[nextStation.region] = (currIndex + 1)
+        }
+        
         print("Monitoring Started For \(regionIndex.count) Regions")
     }
     
@@ -161,7 +173,7 @@ extension MRTReminderCenter: CLLocationManagerDelegate {
         guard let stationIndex = regionIndex[region] else { return }
         guard currentRequest.currStationIndex != stationIndex else { return }
         
-        print("User entered a station: \(regionIndex[region]!)")
+        print("User entered a station: \(stationIndex)")
         self.currentRequest.updateCurrentStatus(currStationIndex: stationIndex)
         self.delegate?.reminderProgressUpdated(stationsTraveled: currentRequest.currStationIndex,
                                                stationsRemaining: currentRequest.stationsRemaining,
@@ -174,6 +186,14 @@ extension MRTReminderCenter: CLLocationManagerDelegate {
         else if currentRequest.stationsRemaining == 0 {
             showNotification(title: "You’ve arrived!",
                              body: "Get off at \(currentRequest.endStation.name) station now.")
+        }
+        else if currentRequest.currStationIndex > currentRequest.lastStationIndex {
+            showNotification(title: "You missed your destination!",
+                             body: "Get off the station now & change your train lane.")
+        }
+        else if currentRequest.currStationIndex < 0 {
+            showNotification(title: "Your train is heading the wrong way!",
+                             body: "Get off the station now & change your train lane.")
         }
     }
 }
