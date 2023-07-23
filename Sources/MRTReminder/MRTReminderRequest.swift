@@ -27,14 +27,14 @@ public class MRTReminderRequest {
         lastStationIndex - currStationIndex
     }
     public var stationCount: Int {
-        lastStationIndex
+        lastStationIndex + 1
     }
     
     public var stationCountIncludingNeighbors: Int {
-        lastStationIndex + getExtraNeighboringStationCount()
+        stationCount + getExtraNeighboringStationCount()
     }
     public var estimatedTimeArrival: Double {
-        MRTReminderCenter.shared.averageDurationPerStation * Double(stationCount)
+        MRTReminderCenter.shared.averageDurationPerStation * Double(lastStationIndex)
     }
     
     public init(startingStation: MRTReminderStation, destinationStation: MRTReminderStation) {
